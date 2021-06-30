@@ -8,6 +8,7 @@ module.exports.authUser = async (req,res) => {
             if( user.password === password ){
                 return res.status(200).json({
                     message : 'You will be redirected to menu...',
+                    userId : user._id,
                     success : true
                 })
             }else{
@@ -23,6 +24,7 @@ module.exports.authUser = async (req,res) => {
             })
             return res.status(200).json({
                 message : 'You will be redirected to menu...',
+                userId : user._id ,
                 success : true
             })
         }
