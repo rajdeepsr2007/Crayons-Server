@@ -4,7 +4,6 @@ module.exports.createRoom = async (req,res) => {
     try{
         const {words , rounds , drawingTime , user} = req.body;
         const room = await db.collection('Room').insertOne({
-            admin : user ,
             rounds ,
             drawingTime,
             words,
@@ -23,7 +22,6 @@ module.exports.createRoom = async (req,res) => {
             roomId
         })
     }catch(error){
-        console.log(error);
         return res.status(500).json({
             message : 'Something Went Wrong'
         })
@@ -39,7 +37,6 @@ module.exports.findRooms = async (req,res) => {
             rooms
         })
     }catch(error){
-        console.log(error);
         return res.status(500).json({
             message : 'Something Went Wrong'
         })

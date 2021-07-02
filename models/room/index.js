@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
 const roomSchema = new mongoose.Schema({
-    admin : {
-        type : mongoose.Schema.Types.ObjectId,
-        ref : 'User'
-    },
     roomId : {
         type : String, 
     },
