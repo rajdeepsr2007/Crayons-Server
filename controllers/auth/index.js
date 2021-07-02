@@ -1,9 +1,9 @@
-const db = require('../../config/mongoose');
+const User = require('../../models/user/index'); 
 
 module.exports.authUser = async (req,res) => {
     try{
         const {username , password} = req.body;
-        let user = await db.collection('User').findOne({ username });
+        let user = await User.findOne({ username });
         if( user ){
             if( user.password === password ){
                 return res.status(200).json({
@@ -18,7 +18,7 @@ module.exports.authUser = async (req,res) => {
                 })
             }
         }else{
-            user = await db.collection('User').insertOne({ 
+            user = await User.create({ 
                 username ,
                 password
             })
@@ -29,7 +29,6 @@ module.exports.authUser = async (req,res) => {
             })
         }
     }catch(error){
-        console.log(error);
         return res.status(500).json({
             message : 'Something went wrong'
         })
