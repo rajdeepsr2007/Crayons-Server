@@ -5,7 +5,7 @@ const cors = require('cors');
 const http=require('http');
 
 const gameServer = http.Server(app);
-const gameServerSocket = require('./config/gameServer').createGameServer(gameServer);
+const gameServerSocket = require('./config/Game Server/gameServer').createGameServer(gameServer);
 gameServer.listen(process.env.CRAYONS_GAME_PORT || 9000);
 
 const db = require('./config/mongoose');
