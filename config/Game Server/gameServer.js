@@ -3,7 +3,7 @@ const User = require('../../models/user');
 const db = require('../mongoose');
 const util = require('./util/util');
 const config = require('./config');
-const { socketToUser , activeRooms } = require('./data');
+const { socketToUser , activeRooms , userRooms } = require('./data');
 
 let io = null;
 
@@ -21,7 +21,7 @@ module.exports.createGameServer = (server) => {
         socket.emit('connected');
         socket.on('join-leave-room',data => {
             const userId = data.user;
-            if( !socketToUser[socket.id] )
+            if( !socketToUser[socket.id] && data.type === 'game' )
                 socketToUser[socket.id] = userId;
             if( data.join ){
                 util.joinRoom(socket , data );
@@ -35,7 +35,11 @@ module.exports.createGameServer = (server) => {
         })
 
         socket.on('disconnect' , () => {
-
+            const userId = socketToUser[socket.id];
+            if( userRooms[userId] )
+            for( const room of userRooms[userId] ){
+                socket.leave(room);
+            }
         })
     })
     

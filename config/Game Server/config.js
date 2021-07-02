@@ -1,5 +1,5 @@
 const util = require('./util/util');
-const { socketToUser , activeRooms } = require('./data');
+const { socketToUser , activeRooms , userRooms} = require('./data');
 const User = require('../../models/user/index');
 
 module.exports.configServer = (io) => {
@@ -9,7 +9,16 @@ module.exports.configServer = (io) => {
     })
 
     io.of("/").adapter.on("leave-room", (room , id) => {
-          
+        const roomId = util.getRoomId(room);
+        const roomType = util.getRoomType(room);
+        const userId = socketToUser[id];
+        if( roomType === 'game' ){
+            activeRooms[roomId].users = activeRooms[roomId].users.filter( user => {
+                user._id !== userId
+            })
+            util.sendRoomUpdate(io , activeRooms[roomId]);
+            util.sendRoomInfo(io , roomId );
+        }
     })
 
     io.of("/").adapter.on("join-room" , async (room , id) => {
@@ -22,14 +31,21 @@ module.exports.configServer = (io) => {
                 if( !activeRooms[roomId] ){
                     activeRooms[roomId] = {
                         admin : userId,
-                        users : [{...user,password : null}],
+                        users : [user],
                         roomId 
                     };
                 }else{
-                    activeRooms[roomId].users.push({...user , password : null})
+                    activeRooms[roomId].users.push(user)
                 }
-                util.sendRoomUpdate(io , activeRooms[roomId])
+                util.sendRoomUpdate(io , activeRooms[roomId] );
+                util.sendRoomInfo(io , roomId );
             }
+        }else{
+            util.sendRoomInfo( io , roomId , id );
         }
+        if( !userRooms[userId]  ){
+            userRooms[userId] = [];
+        }
+        userRooms[userId].push(room);
     })
 }
