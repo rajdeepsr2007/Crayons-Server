@@ -8,18 +8,27 @@ module.exports.configServer = (io) => {
         
     })
 
+
+
     io.of("/").adapter.on("leave-room", (room , id) => {
         const roomId = util.getRoomId(room);
         const roomType = util.getRoomType(room);
         const userId = socketToUser[id];
         if( roomType === 'game' ){
             activeRooms[roomId].users = activeRooms[roomId].users.filter( user => {
-                user._id !== userId
+                return JSON.stringify(user._id) !== JSON.stringify(userId)
             })
-            util.sendRoomUpdate(io , activeRooms[roomId]);
-            util.sendRoomInfo(io , roomId );
+            if( activeRooms[roomId].users.length > 0 ){
+                if(activeRooms[roomId].admin == userId){
+                    activeRooms[roomId].admin = activeRooms[roomId].users[0]._id;
+                }
+                util.sendRoomUpdate(io , activeRooms[roomId]);
+                util.sendRoomInfo(io , roomId );
+            }
         }
     })
+
+
 
     io.of("/").adapter.on("join-room" , async (room , id) => {
         const roomId = util.getRoomId(room);
