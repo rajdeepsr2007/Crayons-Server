@@ -3,7 +3,7 @@ const User = require('../../models/user');
 const db = require('../mongoose');
 const util = require('./util/util');
 const config = require('./config');
-const { socketToUser , activeRooms , userRooms } = require('./data');
+const { socketToUser , activeRooms , userRooms, userToSocket } = require('./data');
 
 let io = null;
 
@@ -52,9 +52,11 @@ module.exports.createGameServer = (server) => {
             for( const room of userRooms[userId] ){
                 socket.leave(room);
             }
-        })
-    })
-    
+            delete userRooms[userId];
+            delete socketToUser[socket.id];
+            delete userToSocket[userId]; 
+        });
+    });  
 }
 
 

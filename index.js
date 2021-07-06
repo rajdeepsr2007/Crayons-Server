@@ -8,6 +8,10 @@ const gameServer = http.Server(app);
 const gameServerSocket = require('./config/Game Server/gameServer').createGameServer(gameServer);
 gameServer.listen(process.env.CRAYONS_GAME_PORT || 9000);
 
+const usersServer = http.Server(app);
+const usersServerSocket = require('./config/usersServer/usersServer').createUsersServer(usersServer);
+usersServer.listen(process.env.CRAYONS_USERS_PORT || 5000);
+
 const db = require('./config/mongoose');
 
 app.use(cors());
