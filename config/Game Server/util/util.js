@@ -1,4 +1,4 @@
-const { activeRooms } = require("../data")
+const { activeRooms, userToSocket } = require("../data")
 
 module.exports.joinRoom = (socket ,  data ) => {
     if( data.type === 'info' ){
@@ -71,6 +71,11 @@ module.exports.changeHost = (io , roomId , userId) => {
             this.sendRoomUpdate(io , { roomId , admin : userId });
         }
     }
+}
+
+module.exports.removeUser = (io , userId ) => {
+    const socketId = userToSocket[userId];
+    io.to(socketId).emit('socket-disconnect');
 }
 
 

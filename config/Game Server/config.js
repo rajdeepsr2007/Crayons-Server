@@ -1,5 +1,5 @@
 const util = require('./util/util');
-const { socketToUser , activeRooms , userRooms} = require('./data');
+const { socketToUser , activeRooms , userRooms , userToSocket} = require('./data');
 const User = require('../../models/user/index');
 
 module.exports.configServer = (io) => {
@@ -15,6 +15,8 @@ module.exports.configServer = (io) => {
         const roomType = util.getRoomType(room);
         const userId = socketToUser[id];
         if( roomType === 'game' ){
+            delete userToSocket[userId];
+            delete socketToUser[id];
             if( activeRooms[roomId] ){
                 activeRooms[roomId].users = activeRooms[roomId].users.filter( user => {
                     return JSON.stringify(user._id) !== JSON.stringify(userId)
@@ -51,6 +53,7 @@ module.exports.configServer = (io) => {
                 }else{
                     activeRooms[roomId].users.push(user)
                 }
+                userToSocket[userId] = id;
                 util.sendRoomUpdate(io , activeRooms[roomId] );
                 util.sendRoomInfo(io , roomId );
             }

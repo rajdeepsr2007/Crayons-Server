@@ -34,6 +34,11 @@ module.exports.createGameServer = (server) => {
         socket.on('change-host' , data => {
             const {roomId , user} = data;
             util.changeHost(io ,roomId , user);
+        });
+
+        socket.on('remove-user' , data => {
+            const {roomId , user} = data;
+            util.removeUser(io ,  user);
         })
 
 
