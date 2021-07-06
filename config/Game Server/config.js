@@ -15,15 +15,20 @@ module.exports.configServer = (io) => {
         const roomType = util.getRoomType(room);
         const userId = socketToUser[id];
         if( roomType === 'game' ){
-            activeRooms[roomId].users = activeRooms[roomId].users.filter( user => {
-                return JSON.stringify(user._id) !== JSON.stringify(userId)
-            })
-            if( activeRooms[roomId].users.length > 0 ){
-                if(activeRooms[roomId].admin == userId){
-                    activeRooms[roomId].admin = activeRooms[roomId].users[0]._id;
+            if( activeRooms[roomId] ){
+                activeRooms[roomId].users = activeRooms[roomId].users.filter( user => {
+                    return JSON.stringify(user._id) !== JSON.stringify(userId)
+                })
+                if( activeRooms[roomId].users.length > 0 ){
+                    if(activeRooms[roomId].admin == userId){
+                        activeRooms[roomId].admin = activeRooms[roomId].users[0]._id;
+                    }
+                    util.sendRoomUpdate(io , activeRooms[roomId]);
+                    util.sendRoomInfo(io , roomId );
+                }else{
+                    util.sendRoomInfo(io , roomId );
+                    delete activeRooms[roomId];
                 }
-                util.sendRoomUpdate(io , activeRooms[roomId]);
-                util.sendRoomInfo(io , roomId );
             }
         }
     })

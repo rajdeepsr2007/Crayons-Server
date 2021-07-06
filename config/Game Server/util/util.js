@@ -8,6 +8,9 @@ module.exports.joinRoom = (socket ,  data ) => {
             )
         }
     }else{
+        if( activeRooms[data.roomId] && activeRooms[data.roomId].users && activeRooms[data.roomId].users.length >= 8 ){
+            return;
+        }
         socket.join(
             `game${data.roomId}`
         )
@@ -30,9 +33,6 @@ module.exports.leaveRoom = (socket , data ) => {
         )
     }
 }
-
-
-
 
 
 module.exports.sendRoomInfo = (io , roomId , to) => {
@@ -61,6 +61,16 @@ module.exports.sendRoomInfo = (io , roomId , to) => {
 
 module.exports.sendRoomUpdate = (io , room ) => {
     io.to(`game${room.roomId}`).emit('room-update' , {room});
+}
+
+module.exports.changeHost = (io , roomId , userId) => {
+    if( activeRooms[roomId] && activeRooms[roomId].users){
+        const user = activeRooms[roomId].users.find( user => user._id == userId );
+        if(user){
+            activeRooms[roomId].admin = userId;
+            this.sendRoomUpdate(io , { roomId , admin : userId });
+        }
+    }
 }
 
 
