@@ -16,12 +16,13 @@ module.exports.createUsersServer = (server) => {
         socket.on('online' , data => {
             activeUsers[data.userId] = 'online';
             socketToUser[socket.id] = data.userId;
-            console.log(socketToUser);
             socket.join(`user${data.userId}`);
-            io.to(`user${data.userId}`).emit('users-update' , [{
-                userId : data.userId ,
-                status : 'online'
-            }]);
+            io.to(`user${data.userId}`).emit('users-update' , {
+                users : [{
+                    userId : data.userId ,
+                    lastSeen : 'online'
+                }]
+            });
             userToRooms[data.userId] = [];
         });
 
@@ -30,16 +31,16 @@ module.exports.createUsersServer = (server) => {
             const usersUpdate = [];
             for( const userId of data.userIds ){
                 if( activeUsers[userId] ){
-                    usersUpdate.push({ userId , status : activeUsers[userId] });
-                    userToRooms.push(`user${userId}`);
+                    usersUpdate.push({ userId , lastSeen : activeUsers[userId] });
+                    userToRooms[userId].push(`user${userId}`);
                 }
+                socket.join(`user${userId}`)
             }
             if( usersUpdate.length > 0 ){
                 socket.emit('users-update' , {
                     users : usersUpdate
                 })
-            }
-                
+            }      
         })
 
 
@@ -62,10 +63,10 @@ module.exports.createUsersServer = (server) => {
             const user = await User.findById(userId);
             user.lastSeen = Date.now();
             await user.save();
-            io.to(`user${userId}`).emit('users-update' , [{
+            io.to(`user${userId}`).emit('users-update' , { users : [{
                 userId : userId ,
-                status : Date.now()
-            }]);
+                lastSeen : Date.now()
+            }]});
         })
     });
 }
