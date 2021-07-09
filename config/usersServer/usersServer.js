@@ -23,7 +23,6 @@ module.exports.createUsersServer = (server) => {
                 status : 'online'
             }]);
             userToRooms[data.userId] = [];
-            console.log(data.userId , ' online')
         });
 
         
@@ -31,7 +30,8 @@ module.exports.createUsersServer = (server) => {
             const usersUpdate = [];
             for( const userId of data.userIds ){
                 if( activeUsers[userId] ){
-                    usersUpdate.push({ userId , status : activeUsers[userId] })
+                    usersUpdate.push({ userId , status : activeUsers[userId] });
+                    userToRooms.push(`user${userId}`);
                 }
             }
             if( usersUpdate.length > 0 ){
@@ -64,7 +64,7 @@ module.exports.createUsersServer = (server) => {
             await user.save();
             io.to(`user${userId}`).emit('users-update' , [{
                 userId : userId ,
-                status : 'few seconds ago'
+                status : Date.now()
             }]);
         })
     });
