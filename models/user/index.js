@@ -11,7 +11,12 @@ const userSchema = new mongoose.Schema({
     lastSeen : {
         type : Date,
         default : Date.now()
-    }
+    },
+    friends : [
+        {
+            type : mongoose.Schema.Types.ObjectId
+        }
+    ]
 },{
     timestamps : true
 })
