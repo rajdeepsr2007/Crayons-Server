@@ -1,6 +1,7 @@
 const socketIO = require('socket.io');
 const User = require('../../models/user');
-const { activeUsers , socketToUser, userToRooms } = require('./data');
+const { activeRooms } = require('../Game Server/data');
+const { activeUsers , socketToUser, userToRooms , userToSocket } = require('./data');
 
 let io = null;
 
@@ -16,6 +17,7 @@ module.exports.createUsersServer = (server) => {
         socket.on('online' , data => {
             activeUsers[data.userId] = 'online';
             socketToUser[socket.id] = data.userId;
+            userToSocket[data.userId] = socket.id;
             socket.join(`user${data.userId}`);
             io.to(`user${data.userId}`).emit('users-update' , {
                 users : [{
@@ -48,6 +50,15 @@ module.exports.createUsersServer = (server) => {
             const {roomIds} = data.roomIds.map( id => `user${id}` );
             for( const roomId of roomIds ){
                 socket.leave(roomId);
+            }
+        })
+
+        socket.on('invite-user' , async (data) => {
+            const {userId , roomId , user} = data;
+            const userObject = await User.findById(userId);
+            if( activeUsers[user] && activeRooms[roomId] ){
+                const userSocket = userToSocket[userId];
+                io.to(userSocket).emit('invite', { notifications : [{...data , username : userObject.username}] } );
             }
         })
 

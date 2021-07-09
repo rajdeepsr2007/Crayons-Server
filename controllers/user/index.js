@@ -4,9 +4,9 @@ const Friend = require('../../models/friend');
 module.exports.getUsers = async (req , res) => {
     try{
         const {type , value , userId} = req.params;
+        const userObjects = [];
         if( type === 'search' ){
             const users = await User.find( {username : { $regex : value , $options : "si" } });
-            const userObjects = [];
             for( const user of users ){
                 const friend = await Friend.findOne({ user : userId , friend : user._id });
                 userObjects.push({ ...user.toJSON() , friend : friend ? true : false })
@@ -16,7 +16,11 @@ module.exports.getUsers = async (req , res) => {
                 users : userObjects
             })
         }else{
-            const users = await User.findById(value).populate('friends');
+            const user = await User.findById(value).populate('friends');
+            const users = user.friends;
+            for( const user of users ){
+                userObjects.push({ ...user.toJSON() , friend : true })
+            }
             return res.status(200).json({
                 message : "Users" ,
                 users
