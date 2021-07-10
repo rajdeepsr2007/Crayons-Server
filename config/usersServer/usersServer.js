@@ -12,6 +12,8 @@ module.exports.createUsersServer = (server) => {
         credentials : true
     })
 
+    //confif(io);
+
     io.sockets.on('connection' , socket => {
         socket.emit('connected');
         socket.on('online' , data => {
@@ -31,26 +33,28 @@ module.exports.createUsersServer = (server) => {
         
         socket.on('join-rooms' , (data) => {
             const usersUpdate = [];
+            const user = socketToUser[socket.id];
             for( const userId of data.userIds ){
                 if( activeUsers[userId] ){
                     usersUpdate.push({ userId , lastSeen : activeUsers[userId] });
-                    userToRooms[userId].push(`user${userId}`);
                 }
+                userToRooms[user].push(`user${userId}`);
                 socket.join(`user${userId}`)
             }
             if( usersUpdate.length > 0 ){
                 socket.emit('users-update' , {
                     users : usersUpdate
                 })
-            }      
+            }
         })
 
 
-        socket.on('leave-rooms' , (data) => {
-            const {roomIds} = data.roomIds.map( id => `user${id}` );
-            for( const roomId of roomIds ){
+        socket.on('leave-rooms' , () => {
+            const userId = socketToUser[socket.id];
+            for( const roomId of userToRooms[userId] ){
                 socket.leave(roomId);
             }
+            userToRooms[userId] = [];
         })
 
         socket.on('invite-user' , async (data) => {
@@ -71,6 +75,7 @@ module.exports.createUsersServer = (server) => {
             delete userToRooms[userId];
             delete activeUsers[userId];
             delete socketToUser[socket.id];
+            delete userToSocket[userId];
             const user = await User.findById(userId);
             user.lastSeen = Date.now();
             await user.save();
@@ -80,4 +85,13 @@ module.exports.createUsersServer = (server) => {
             }]});
         })
     });
+}
+
+const confif = (io) => {
+    io.of("/").adapter.on('join-room' , (room , id) => {
+        console.log(room , socketToUser[id] , userToRooms[socketToUser[id]]);
+    })
+    io.of("/").adapter.on('leave-room' , (room , id) => {
+        console.log(room , socketToUser[id] , userToRooms[socketToUser[id]]);
+    })
 }
