@@ -29,6 +29,10 @@ const roomSchema = new mongoose.Schema({
     drawingTime : {
         type : String ,
         default : '60'
+    },
+    visibility : {
+        type : Boolean,
+        default : true
     }
 },{
     timestamps : true

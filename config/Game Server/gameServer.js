@@ -1,7 +1,6 @@
 const socketio = require('socket.io');
-const User = require('../../models/user');
-const db = require('../mongoose');
 const util = require('./util/util');
+const playUtil = require('./util/play-util');
 const config = require('./config');
 const { socketToUser , activeRooms , userRooms, userToSocket } = require('./data');
 
@@ -28,7 +27,7 @@ module.exports.createGameServer = (server) => {
             }else{
                 util.leaveRoom(socket , data );
             }
-        })
+        });
 
 
         socket.on('change-host' , data => {
@@ -39,8 +38,17 @@ module.exports.createGameServer = (server) => {
         socket.on('remove-user' , data => {
             const {roomId , user} = data;
             util.removeUser(io ,  user);
+        });
+
+        socket.on('change-room-visibility' , data => {
+            const {roomId , visibility} = data;
+            util.changeRoomVisibility(io , roomId , visibility);
         })
 
+        socket.on('start-game' , data => {
+            const {roomId} = data;
+            playUtil.updateRound( io , roomId);
+        })
 
         socket.on('socket-disconnect' , () => {
             socket.disconnect();

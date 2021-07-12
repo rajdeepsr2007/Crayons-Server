@@ -31,7 +31,7 @@ module.exports.createRoom = async (req,res) => {
 
 module.exports.findRooms = async (req,res) => {
     try{
-        let rooms = await Room.aggregate([{ $sample : { size : 10 } }]);
+        let rooms = await Room.aggregate([{ $sample : { size : 10 }}]);
         return res.status(200).json({
             message : 'Find Rooms',
             rooms

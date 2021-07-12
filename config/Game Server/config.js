@@ -1,6 +1,7 @@
 const util = require('./util/util');
 const { socketToUser , activeRooms , userRooms , userToSocket} = require('./data');
 const User = require('../../models/user/index');
+const Room = require('../../models/room/index');
 
 module.exports.configServer = (io) => {
 
@@ -45,11 +46,12 @@ module.exports.configServer = (io) => {
             const user = await User.findById(userId);
             if( user ){
                 if( !activeRooms[roomId] ){
-                    activeRooms[roomId] = {
-                        admin : userId,
-                        users : [user],
-                        roomId 
-                    };
+                   const room = await Room.findOne({ roomId });
+                   activeRooms[roomId] = {
+                       ...room.toJSON(),
+                       admin : user._id ,
+                       users : [user]
+                   }
                 }else{
                     activeRooms[roomId].users.push(user)
                 }

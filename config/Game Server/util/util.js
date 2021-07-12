@@ -1,3 +1,4 @@
+const Room = require("../../../models/room");
 const { activeRooms, userToSocket } = require("../data")
 
 module.exports.joinRoom = (socket ,  data ) => {
@@ -70,6 +71,14 @@ module.exports.changeHost = (io , roomId , userId) => {
             activeRooms[roomId].admin = userId;
             this.sendRoomUpdate(io , { roomId , admin : userId });
         }
+    }
+}
+
+module.exports.changeRoomVisibility = async (io , roomId , visibility) => {
+    await Room.findOneAndUpdate({ roomId }, { visibility : visibility });
+    if( activeRooms[roomId] ){
+        activeRooms[roomId].visibility = visibility;
+        this.sendRoomUpdate(io , activeRooms[roomId] );
     }
 }
 
