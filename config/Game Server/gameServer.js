@@ -50,6 +50,10 @@ module.exports.createGameServer = (server) => {
             playUtil.updateRound( io , roomId);
         })
 
+        socket.on('canvas-update', data => {
+            playUtil.sendCanvasUpdate(io , data);
+        })
+
         socket.on('socket-disconnect' , () => {
             socket.disconnect();
         })

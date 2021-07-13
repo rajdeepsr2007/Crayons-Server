@@ -50,7 +50,8 @@ module.exports.configServer = (io) => {
                    activeRooms[roomId] = {
                        ...room.toJSON(),
                        admin : user._id ,
-                       users : [user]
+                       users : [user] ,
+                       canvasPath: '㚅툀'
                    }
                 }else{
                     activeRooms[roomId].users.push(user)
