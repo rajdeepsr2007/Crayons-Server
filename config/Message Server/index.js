@@ -1,7 +1,7 @@
 const socketIO = require('socket.io');
 const User = require('../../models/user');
-const {activeUsers, socketToUser, rooms} = require('./data');
-const { getRandomColor } = require('./util/util');
+const {activeUsers, socketToUser, rooms,  messageIO} = require('./data');
+const { sendMessage ,  getRandomColor } = require('./util/util');
 
 let io = null;
 
@@ -10,6 +10,8 @@ module.exports.createMessageServer = (server) => {
         cors : 'http://localhost:3000',
         credentials : true
     });
+
+    messageIO.io = io;
 
     io.sockets.on('connection' , socket => {
         socket.emit('connected');
@@ -39,11 +41,7 @@ module.exports.createMessageServer = (server) => {
         });
 
         socket.on('new-message' , (data) => {
-            const {roomId} = data;
-            const { userId , text } = data;
-            const message = { userId , text };
-            rooms[roomId].messages.push(message);
-            io.to(`message${roomId}`).emit('messages-update', { userId , text } );
+            sendMessage(io , data);
         })
 
         socket.on('socket-disconnect' , () => {

@@ -54,11 +54,15 @@ module.exports.createGameServer = (server) => {
 
         socket.on('start-game' , data => {
             const {roomId} = data;
-            playUtil.updateRound( io , roomId);
+            playUtil.updateQuestion(io , roomId);
         })
 
         socket.on('canvas-update', data => {
             playUtil.sendCanvasUpdate(io , data);
+        })
+
+        socket.on('select-word' , data => {
+            playUtil.selectWord( io , data);
         })
 
         socket.on('socket-disconnect' , () => {
