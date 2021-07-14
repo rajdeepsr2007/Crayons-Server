@@ -2,7 +2,9 @@ const socketio = require('socket.io');
 const util = require('./util/util');
 const playUtil = require('./util/play-util');
 const config = require('./config');
-const { socketToUser , activeRooms , userRooms, userToSocket } = require('./data');
+const { socketToUser , activeRooms , userRooms, userToSocket , words } = require('./data');
+const fs = require('fs');
+const path = require('path');
 
 let io = null;
 
@@ -15,6 +17,11 @@ module.exports.createGameServer = (server) => {
     })
 
     config.configServer(io);
+
+    fs.readFile(path.join(__dirname , '../../assets/words.txt') , 'utf8' , (err , data) => {
+        for(const word of JSON.stringify(data).substring(1).split('\\n'))
+            words.push(word);
+    })
 
     io.sockets.on('connection',(socket) => {
         socket.emit('connected');
