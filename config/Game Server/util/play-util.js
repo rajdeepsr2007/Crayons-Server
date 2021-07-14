@@ -51,6 +51,7 @@ module.exports.updateQuestion = (io , roomId) => {
     setTimeout(() => {
         sendRoomUpdate( io , { roomId , turn , wordOptions });
     },updateQuestionDelay)
+
 }
 
 module.exports.selectWord = (io , data) => {
@@ -62,11 +63,10 @@ module.exports.selectWord = (io , data) => {
     let questionInterval = parseInt(activeRooms[roomId].drawingTime);
     activeRooms[roomId].timerInterval = setInterval(() => {
         questionInterval--;
+        io.to(`game${roomId}`).emit('timer-update', {timer : questionInterval});
         if( questionInterval === 0 ){
             clearInterval(activeRooms[roomId].timerInterval);
             this.updateQuestion(io , roomId);
-        }else{
-            io.to(`game${roomId}`).emit('timer-update', {timer : questionInterval});
         }
     },1000)
 }

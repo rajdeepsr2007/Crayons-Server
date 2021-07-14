@@ -64,7 +64,7 @@ module.exports.configServer = (io) => {
                     activeRooms[roomId].users.push(user)
                 }
                 userToSocket[userId] = id;
-                util.sendRoomUpdate(io , activeRooms[roomId] );
+                util.sendRoomUpdate(io , util.getOptimizedObject(activeRooms[roomId]) );
                 util.sendRoomInfo(io , roomId );
             }
         }else{

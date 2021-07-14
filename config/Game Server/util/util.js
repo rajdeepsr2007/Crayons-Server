@@ -96,3 +96,19 @@ module.exports.getRoomId = (room) => {
 module.exports.getRoomType = (room) => {
     return room.substr(0,4);
 }
+
+module.exports.getOptimizedObject = (room) => {
+    const optimizedRoom =  {
+        ...room ,
+        words : null ,
+        visibility : null ,
+        expireAt : null ,
+        createdAt : null ,
+        updatedAt : null ,
+        turns : null ,
+        word : null ,
+        timerInterval : null
+    }
+    
+    return optimizedRoom;
+}
