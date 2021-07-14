@@ -2,9 +2,9 @@ const {rooms} = require('../data');
 
 module.exports.sendMessage = (io , data) => {
     const {roomId ,  userId , text ,  type } = data;
-    const message = { userId , text };
+    const message = { userId , text , type };
     rooms[roomId].messages.push(message);
-    io.to(`message${roomId}`).emit('messages-update', { userId , text , type } );
+    io.to(`message${roomId}`).emit('messages-update', message );
 }
 
 module.exports.getRandomColor = () => {

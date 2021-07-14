@@ -2,6 +2,7 @@ const util = require('./util/util');
 const { socketToUser , activeRooms , userRooms , userToSocket} = require('./data');
 const User = require('../../models/user/index');
 const Room = require('../../models/room/index');
+const { updateQuestion } = require('./util/play-util');
 
 module.exports.configServer = (io) => {
 
@@ -26,7 +27,12 @@ module.exports.configServer = (io) => {
                     if(activeRooms[roomId].admin == userId){
                         activeRooms[roomId].admin = activeRooms[roomId].users[0]._id;
                     }
-                    util.sendRoomUpdate(io , activeRooms[roomId]);
+                    if( activeRooms[roomId].turn == userId ){
+                        activeRooms[roomId].question -= 1;
+                        updateQuestion(io , roomId);
+                    }
+                    if( activeRooms[roomId] )
+                    util.sendRoomUpdate(io , { roomId ,  users : activeRooms[roomId].users});
                     util.sendRoomInfo(io , roomId );
                 }else{
                     util.sendRoomInfo(io , roomId );
@@ -51,7 +57,8 @@ module.exports.configServer = (io) => {
                        ...room.toJSON(),
                        admin : user._id ,
                        users : [user] ,
-                       canvasPath: '㚅툀'
+                       canvasPath: '㚅툀',
+                       question : 5
                    }
                 }else{
                     activeRooms[roomId].users.push(user)

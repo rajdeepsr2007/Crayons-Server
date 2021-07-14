@@ -1,5 +1,6 @@
 const socketIO = require('socket.io');
 const User = require('../../models/user');
+const { checkMessage } = require('../Game Server/util/play-util');
 const {activeUsers, socketToUser, rooms,  messageIO} = require('./data');
 const { sendMessage ,  getRandomColor } = require('./util/util');
 
@@ -41,7 +42,12 @@ module.exports.createMessageServer = (server) => {
         });
 
         socket.on('new-message' , (data) => {
-            sendMessage(io , data);
+            const {roomId , userId} = data;
+            if(checkMessage(data)){
+                sendMessage(io , { roomId , userId , type : 'guessed' } );
+            }else{
+                sendMessage(io , data);
+            }
         })
 
         socket.on('socket-disconnect' , () => {

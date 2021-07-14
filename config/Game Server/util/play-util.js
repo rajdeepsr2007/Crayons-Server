@@ -39,10 +39,13 @@ const getTurn = (room) => {
 module.exports.updateQuestion = (io , roomId) => {
     let updateQuestionDelay = 0;
     if( !activeRooms[roomId].question || activeRooms[roomId].question === 5 ){
-        updateQuestionDelay = 3000;
-        this.updateRound(io , roomId);
+        if( activeRooms[roomId].question === 5 ){
+            updateQuestionDelay = 3000;
+            this.updateRound(io , roomId)
+        }
+        activeRooms[roomId].question = 0;
     }
-    activeRooms[roomId].question = 1;
+    activeRooms[roomId].question += 1;
     const wordOptions = getRandomWords(3);
     const turn = getTurn( activeRooms[roomId] );
     setTimeout(() => {
@@ -54,6 +57,22 @@ module.exports.selectWord = (io , data) => {
     const { roomId , word } = data;
     activeRooms[roomId].word = word;
     const turn = activeRooms[roomId].turn;
-    sendMessage(messageIO.io , { roomId , userId : turn ,  type : 'drawing' })
+    sendMessage(messageIO.io , { roomId , userId : turn ,  type : 'drawing' });
     sendRoomUpdate(io , { roomId , drawing : true });   
+    let questionInterval = parseInt(activeRooms[roomId].drawingTime);
+    activeRooms[roomId].timerInterval = setInterval(() => {
+        questionInterval--;
+        if( questionInterval === 0 ){
+            clearInterval(activeRooms[roomId].timerInterval);
+            this.updateQuestion(io , roomId);
+        }else{
+            io.to(`game${roomId}`).emit('timer-update', {timer : questionInterval});
+        }
+    },1000)
+}
+
+module.exports.checkMessage = (data) => {
+    let {roomId , text} = data;
+    text = text.trim();
+    return text === activeRooms[roomId].word;
 }
