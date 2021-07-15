@@ -79,14 +79,17 @@ module.exports.selectWord = (io , data) => {
     const turn = activeRooms[roomId].turn;
     sendMessage(messageIO.io , { roomId , userId : turn ,  type : 'drawing' });
     sendRoomUpdate(io , { roomId , drawing : true });   
-    let questionInterval = parseInt('5');
+    let questionInterval = parseInt(activeRooms[roomId].drawingTime);
     activeRooms[roomId].timerInterval = setInterval(() => {
         questionInterval--;
         const hint = getHint( questionInterval , parseInt(activeRooms[roomId].drawingTime) , word );
         io.to(`game${roomId}`).emit('timer-update', {timer : questionInterval , hint  });
         if( questionInterval === 0 ){
             clearInterval(activeRooms[roomId].timerInterval);
-            this.updateQuestion(io , roomId);
+            io.to(`game${roomId}`).emit('show-scores' , { word : word  });
+            setTimeout(() => {
+                this.updateQuestion(io , roomId);
+            },3000);
         }
     },1000)
 }
