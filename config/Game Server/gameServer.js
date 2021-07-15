@@ -2,7 +2,7 @@ const socketio = require('socket.io');
 const util = require('./util/util');
 const playUtil = require('./util/play-util');
 const config = require('./config');
-const { socketToUser , activeRooms , userRooms, userToSocket , words } = require('./data');
+const { socketToUser , activeRooms , userRooms, userToSocket , words, gameIO } = require('./data');
 const fs = require('fs');
 const path = require('path');
 
@@ -22,6 +22,8 @@ module.exports.createGameServer = (server) => {
         for(const word of JSON.stringify(data).substring(1).split('\\n'))
             words.push(word);
     })
+
+    gameIO.io = io;
 
     io.sockets.on('connection',(socket) => {
         socket.emit('connected');

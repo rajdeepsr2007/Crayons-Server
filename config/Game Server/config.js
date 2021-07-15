@@ -63,10 +63,12 @@ module.exports.configServer = (io) => {
                        admin : user._id ,
                        users : [user] ,
                        canvasPath: '㚅툀',
-                       question : 5
+                       question : 5,
+                       scores : { [userId] : { question : 0 , overall : 0 } }
                    }
                 }else{
-                    activeRooms[roomId].users.push(user)
+                    activeRooms[roomId].users.push(user);
+                    activeRooms[roomId].scores[userId] = { question : 0 , overall : 0 };
                 }
                 userToSocket[userId] = id;
                 util.sendRoomUpdate(io , util.getOptimizedObject(activeRooms[roomId]) );
