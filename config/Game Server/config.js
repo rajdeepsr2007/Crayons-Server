@@ -3,6 +3,7 @@ const { socketToUser , activeRooms , userRooms , userToSocket} = require('./data
 const User = require('../../models/user/index');
 const Room = require('../../models/room/index');
 const { updateQuestion } = require('./util/play-util');
+const { rooms } = require('../../config/Message Server/data');
 
 module.exports.configServer = (io) => {
 
@@ -36,7 +37,11 @@ module.exports.configServer = (io) => {
                     util.sendRoomInfo(io , roomId );
                 }else{
                     util.sendRoomInfo(io , roomId );
+                    if( activeRooms[roomId].timerInterval ){
+                        clearInterval(activeRooms[roomId].timerInterval);
+                    }
                     delete activeRooms[roomId];
+                    delete rooms[roomId]
                 }
             }
         }

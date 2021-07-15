@@ -37,6 +37,9 @@ const getTurn = (room) => {
 }
 
 module.exports.updateQuestion = (io , roomId) => {
+    if( activeRooms[roomId].timerInterval ){
+        clearInterval(activeRooms[roomId].timerInterval)
+    }
     let updateQuestionDelay = 0;
     if( !activeRooms[roomId].question || activeRooms[roomId].question === 5 ){
         if( activeRooms[roomId].question === 5 ){
