@@ -54,6 +54,20 @@ module.exports.updateQuestion = (io , roomId) => {
 
 }
 
+const getHint = (interval , drawTime , word) => {
+    const length = word.length;
+    let showWordLength = Math.floor(((drawTime - interval)*length)/drawTime);
+    let hint = '';
+    for( let i = 0 ; i < length ; i++)
+        hint+='_'
+    for( let i = 0 ; i < length && showWordLength > 0 ; i+=2 && showWordLength-- ){
+        hint = hint.split('');
+        hint[i] = word[i];
+        hint = hint.join('');
+    }
+    return hint;
+}
+
 module.exports.selectWord = (io , data) => {
     const { roomId , word } = data;
     activeRooms[roomId].word = word;
@@ -63,7 +77,8 @@ module.exports.selectWord = (io , data) => {
     let questionInterval = parseInt(activeRooms[roomId].drawingTime);
     activeRooms[roomId].timerInterval = setInterval(() => {
         questionInterval--;
-        io.to(`game${roomId}`).emit('timer-update', {timer : questionInterval});
+        const hint = getHint( questionInterval , parseInt(activeRooms[roomId].drawingTime) , word );
+        io.to(`game${roomId}`).emit('timer-update', {timer : questionInterval , hint  });
         if( questionInterval === 0 ){
             clearInterval(activeRooms[roomId].timerInterval);
             this.updateQuestion(io , roomId);
@@ -76,3 +91,4 @@ module.exports.checkMessage = (data) => {
     text = text.trim();
     return text === activeRooms[roomId].word;
 }
+
