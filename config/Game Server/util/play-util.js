@@ -86,7 +86,7 @@ module.exports.selectWord = (io , data) => {
         io.to(`game${roomId}`).emit('timer-update', {timer : questionInterval , hint  });
         if( questionInterval === 0 ){
             clearInterval(activeRooms[roomId].timerInterval);
-            io.to(`game${roomId}`).emit('show-scores' , { word : word  });
+            io.to(`game${roomId}`).emit('show-scores' , { word : word , scores : activeRooms[roomId].scores  });
             setTimeout(() => {
                 this.updateQuestion(io , roomId);
             },3000);

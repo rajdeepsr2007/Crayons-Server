@@ -1,5 +1,6 @@
 const User = require('../../models/user/index');
 const {activeUsers} = require('../../config/usersServer/data');
+const { getRandomColor } = require('../../config/Message Server/util/util');
 
 module.exports.authUser = async (req,res) => {
     try{
@@ -27,9 +28,14 @@ module.exports.authUser = async (req,res) => {
                 })
             }
         }else{
+            const avatar = [];
+            avatar[0] = JSON.stringify(Math.ceil(Math.random()*5));
+            avatar[1] = JSON.stringify(Math.ceil(Math.random()*5));
+            avatar[2] = getRandomColor();
             user = await User.create({ 
                 username ,
-                password
+                password ,
+                avatar
             })
             return res.status(200).json({
                 message : 'You will be redirected to menu...',
