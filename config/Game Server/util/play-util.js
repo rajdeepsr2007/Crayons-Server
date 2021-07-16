@@ -1,12 +1,19 @@
 const { messageIO } = require("../../Message Server/data");
 const { sendMessage } = require("../../Message Server/util/util");
 const { activeRooms, userToSocket , words , gameIO } = require("../data");
-const { sendRoomInfo, sendRoomUpdate } = require("./util");
+const { sendRoomInfo, sendRoomUpdate , cleanUpGame } = require("./util");
+
 
 module.exports.updateRound = ( io , roomId ) => {
+    if( activeRooms[roomId].cround == activeRooms[roomId].rounds  ){
+        io.to(`game${roomId}`).emit('game-end');
+        cleanUpGame(roomId);
+        return true;
+    }
     activeRooms[roomId].cround = parseInt(activeRooms[roomId].cround) + 1;
     sendRoomUpdate(io , { roomId , cround : activeRooms[roomId].cround } );
     sendRoomInfo( io , roomId );
+    return false;
 }
 
 module.exports.sendCanvasUpdate = (io , data) => {
@@ -47,7 +54,9 @@ module.exports.updateQuestion = (io , roomId) => {
     if( !activeRooms[roomId].question || activeRooms[roomId].question === 5 ){
         if( activeRooms[roomId].question === 5 ){
             updateQuestionDelay = 3000;
-            this.updateRound(io , roomId)
+            const isEnd = this.updateRound(io , roomId);
+            if( isEnd )
+                return;
         }
         activeRooms[roomId].question = 0;
     }
@@ -79,7 +88,7 @@ module.exports.selectWord = (io , data) => {
     const turn = activeRooms[roomId].turn;
     sendMessage(messageIO.io , { roomId , userId : turn ,  type : 'drawing' });
     sendRoomUpdate(io , { roomId , drawing : true });   
-    let questionInterval = parseInt(activeRooms[roomId].drawingTime);
+    let questionInterval = parseInt('5');
     activeRooms[roomId].timerInterval = setInterval(() => {
         questionInterval--;
         const hint = getHint( questionInterval , parseInt(activeRooms[roomId].drawingTime) , word );

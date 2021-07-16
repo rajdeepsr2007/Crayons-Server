@@ -15,3 +15,9 @@ module.exports.getRandomColor = () => {
     }
     return color;
 }
+
+module.exports.cleanUpMessage = (roomId) => {
+  if( rooms[roomId] ){
+    delete rooms[roomId];
+  }
+}

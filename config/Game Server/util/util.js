@@ -1,5 +1,7 @@
 const Room = require("../../../models/room");
+const { cleanUpMessage } = require("../../Message Server/util/util");
 const { activeRooms, userToSocket } = require("../data")
+
 
 module.exports.joinRoom = (socket ,  data ) => {
     if( data.type === 'info' ){
@@ -111,4 +113,14 @@ module.exports.getOptimizedObject = (room) => {
     }
     
     return optimizedRoom;
+}
+
+module.exports.cleanUpGame = (roomId) => {
+    if( activeRooms[roomId] ){
+        if( activeRooms[roomId].timerInterval ){
+            clearInterval(activeRooms[roomId].timerInterval);
+        }
+        delete activeRooms[roomId];
+    }
+    cleanUpMessage(roomId);
 }
