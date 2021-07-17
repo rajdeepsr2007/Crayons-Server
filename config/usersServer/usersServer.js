@@ -5,6 +5,18 @@ const { activeUsers , socketToUser, userToRooms , userToSocket } = require('./da
 
 let io = null;
 
+module.exports.updateLastSeen = (userId , lastSeen) => {
+    if( lastSeen === 'online' || lastSeen === 'In a game' ){
+        activeUsers[userId] = lastSeen;
+    }
+    io.to(`user${userId}`).emit('users-update' , {
+        users : [{
+            userId : userId ,
+            lastSeen : lastSeen
+        }]
+    });
+}
+
 module.exports.createUsersServer = (server) => {
 
     io = socketIO( server , {
@@ -17,16 +29,10 @@ module.exports.createUsersServer = (server) => {
     io.sockets.on('connection' , socket => {
         socket.emit('connected');
         socket.on('online' , data => {
-            activeUsers[data.userId] = 'online';
             socketToUser[socket.id] = data.userId;
             userToSocket[data.userId] = socket.id;
             socket.join(`user${data.userId}`);
-            io.to(`user${data.userId}`).emit('users-update' , {
-                users : [{
-                    userId : data.userId ,
-                    lastSeen : 'online'
-                }]
-            });
+            this.updateLastSeen( data.userId , 'online' );
             userToRooms[data.userId] = [];
         });
 
@@ -79,10 +85,7 @@ module.exports.createUsersServer = (server) => {
             const user = await User.findById(userId);
             user.lastSeen = Date.now();
             await user.save();
-            io.to(`user${userId}`).emit('users-update' , { users : [{
-                userId : userId ,
-                lastSeen : Date.now()
-            }]});
+            this.updateLastSeen( userId , Date.now() );
         })
     });
 }

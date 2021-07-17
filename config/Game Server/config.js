@@ -3,6 +3,7 @@ const { socketToUser , activeRooms , userRooms , userToSocket} = require('./data
 const User = require('../../models/user/index');
 const Room = require('../../models/room/index');
 const { updateQuestion } = require('./util/play-util');
+const { updateLastSeen } = require('../usersServer/usersServer');
 
 module.exports.configServer = (io) => {
 
@@ -39,6 +40,7 @@ module.exports.configServer = (io) => {
                     util.cleanUpGame(roomId);
                 }
             }
+            updateLastSeen( userId , 'online' );
         }
     })
 
@@ -68,6 +70,7 @@ module.exports.configServer = (io) => {
                 userToSocket[userId] = id;
                 util.sendRoomUpdate(io , util.getOptimizedObject(activeRooms[roomId]) );
                 util.sendRoomInfo(io , roomId );
+                updateLastSeen( userId , "In a game" )
             }
         }else{
             util.sendRoomInfo( io , roomId , id );

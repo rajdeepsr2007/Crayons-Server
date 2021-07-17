@@ -1,17 +1,18 @@
 const { messageIO } = require("../../Message Server/data");
 const { sendMessage } = require("../../Message Server/util/util");
-const { activeRooms, userToSocket , words , gameIO } = require("../data");
+const { activeRooms, userToSocket , words , gameIO, startTimes } = require("../data");
 const { sendRoomInfo, sendRoomUpdate , cleanUpGame } = require("./util");
 
 
 module.exports.updateRound = ( io , roomId ) => {
-    if( activeRooms[roomId].cround == activeRooms[roomId].rounds  ){
+    const room = activeRooms[roomId];
+    if( room.cround == room.rounds  ){
         io.to(`game${roomId}`).emit('game-end');
         cleanUpGame(roomId);
         return true;
     }
-    activeRooms[roomId].cround = parseInt(activeRooms[roomId].cround) + 1;
-    sendRoomUpdate(io , { roomId , cround : activeRooms[roomId].cround } );
+    room.cround = parseInt(room.cround) + 1;
+    sendRoomUpdate(io , { roomId , cround : room.cround } );
     sendRoomInfo( io , roomId );
     return false;
 }
@@ -22,10 +23,18 @@ module.exports.sendCanvasUpdate = (io , data) => {
     sendRoomUpdate(io , { roomId , canvasPath });
 }
 
-const getRandomWords = (count) => {
+const getRandomWords = (count , roomId) => {
     const randomWords = [];
+    const customWords = activeRooms[roomId].words;
+    let searchLength = words.length;
+    if( customWords && customWords.length > 0 ){
+        searchLength += customWords.length;
+    }
     for( let i = 0 ; i < count ; i++ ){
-        const randomWord = words[Math.ceil(Math.random() * (words.length - 1))];
+        const wordIndex = Math.ceil(Math.random() * ( searchLength - 1));
+        const randomWord = wordIndex > words.length - 1 ? 
+                           customWords[wordIndex%words.length] : 
+                           words[wordIndex];
         randomWords.push(randomWord);
     }
     return randomWords;
@@ -44,27 +53,28 @@ const getTurn = (room) => {
 }
 
 module.exports.updateQuestion = (io , roomId) => {
-    if( activeRooms[roomId].timerInterval ){
-        clearInterval(activeRooms[roomId].timerInterval)
+    const room = activeRooms[roomId];
+    if( room.timerInterval ){
+        clearInterval(room.timerInterval)
     }
-    for( const userId in activeRooms[roomId].scores ){
-        activeRooms[roomId].scores[userId].question = 0;
+    for( const userId in room.scores ){
+        room.scores[userId].question = 0;
     }
     let updateQuestionDelay = 0;
-    if( !activeRooms[roomId].question || activeRooms[roomId].question === 5 ){
-        if( activeRooms[roomId].question === 5 ){
-            updateQuestionDelay = 3000;
+    if( !room.question || room.question === 5 ){
+        if( room.question === 5 ){
+            updateQuestionDelay = 5000;
             const isEnd = this.updateRound(io , roomId);
             if( isEnd )
                 return;
         }
-        activeRooms[roomId].question = 0;
+        room.question = 0;
     }
-    activeRooms[roomId].question += 1;
-    const wordOptions = getRandomWords(3);
-    const turn = getTurn( activeRooms[roomId] );
+    room.question += 1;
+    const wordOptions = getRandomWords(3 , roomId);
+    const turn = getTurn( room );
     setTimeout(() => {
-        sendRoomUpdate( io , { roomId , turn , wordOptions , scores : activeRooms[roomId].scores });
+        sendRoomUpdate( io , { roomId , turn , wordOptions , scores : room.scores });
     },updateQuestionDelay);
 }
 
@@ -84,34 +94,47 @@ const getHint = (interval , drawTime , word) => {
 
 module.exports.selectWord = (io , data) => {
     const { roomId , word } = data;
-    activeRooms[roomId].word = word;
-    const turn = activeRooms[roomId].turn;
+    const room = activeRooms[roomId];
+    room.word = word;
+    const turn = room.turn;
     sendMessage(messageIO.io , { roomId , userId : turn ,  type : 'drawing' });
     sendRoomUpdate(io , { roomId , drawing : true });   
-    let questionInterval = parseInt('5');
-    activeRooms[roomId].timerInterval = setInterval(() => {
+    let questionInterval = parseInt(room.drawingTime);
+    startTimes[roomId] = new Date();
+    room.timerInterval = setInterval(() => {
         questionInterval--;
-        const hint = getHint( questionInterval , parseInt(activeRooms[roomId].drawingTime) , word );
+        const hint = getHint( questionInterval , parseInt(room.drawingTime) , word );
         io.to(`game${roomId}`).emit('timer-update', {timer : questionInterval , hint  });
         if( questionInterval === 0 ){
-            clearInterval(activeRooms[roomId].timerInterval);
-            io.to(`game${roomId}`).emit('show-scores' , { word : word , scores : activeRooms[roomId].scores  });
+            clearInterval(room.timerInterval);
+            io.to(`game${roomId}`).emit('show-scores' , { word : word , scores : room.scores  });
             setTimeout(() => {
                 this.updateQuestion(io , roomId);
-            },3000);
+            },5000);
         }
     },1000)
 }
 
+const getScore = ( roomId ) => {
+    const room = activeRooms[roomId];
+    const drawingTime = parseInt(room.drawingTime);
+    const timeTaken = (new Date() - startTimes[roomId])/1000;
+    const score = Math.ceil(((drawingTime - timeTaken)/(drawingTime - 20 )) * 250);
+    return score > 250 ? 250 : score;
+}
+
 module.exports.checkMessage = (data) => {
     let {roomId , text , userId} = data;
-    text = text.trim();
-    const isRight =  text === activeRooms[roomId].word;
+    const room = activeRooms[roomId];
+    const isRight =  text.trim() === room.word;
     if( isRight && activeRooms[roomId].scores[userId].question === 0 ){
-        activeRooms[roomId].scores[userId].question += 100;
-        activeRooms[roomId].scores[userId].overall += 100;
-        sendRoomUpdate(gameIO.io , { roomId , scores : activeRooms[roomId].scores });
+        const incScore = getScore( roomId );
+        room.scores[userId].question += incScore;
+        room.scores[userId].overall += incScore;
+        sendRoomUpdate(gameIO.io , { roomId , scores : room.scores });
     }
     return isRight;
 }
+
+
 
