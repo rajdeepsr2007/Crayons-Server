@@ -107,6 +107,7 @@ module.exports.selectWord = (io , data) => {
         io.to(`game${roomId}`).emit('timer-update', {timer : questionInterval , hint  });
         if( questionInterval === 0 ){
             clearInterval(room.timerInterval);
+            room.word='';
             io.to(`game${roomId}`).emit('show-scores' , { word : word , scores : room.scores  });
             setTimeout(() => {
                 this.updateQuestion(io , roomId);
@@ -131,7 +132,24 @@ module.exports.checkMessage = (data) => {
         const incScore = getScore( roomId );
         room.scores[userId].question += incScore;
         room.scores[userId].overall += incScore;
+        let isAllGuessed = true;
+        for( const userId in room.scores ){
+            if( userId != room.turn && room.scores[userId].question === 0 ){
+                isAllGuessed = false;
+                break;
+            }
+        }
         sendRoomUpdate(gameIO.io , { roomId , scores : room.scores });
+        if( isAllGuessed ){
+            if( room.timerInterval ){
+                clearInterval(room.timerInterval); 
+            }
+            gameIO.io.to(`game${roomId}`).emit('show-scores' , { word : room.word , scores : room.scores  });
+            room.word = '';
+            setTimeout(() => {
+                this.updateQuestion(gameIO.io , roomId);
+            },5000);
+        }
     }
     return isRight;
 }
