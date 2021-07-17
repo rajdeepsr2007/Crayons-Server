@@ -14,7 +14,7 @@ usersServer.listen(process.env.CRAYONS_USERS_PORT || 5000);
 
 const messageServer = http.Server(app);
 const messageServerSocket = require('./config/Message Server/index').createMessageServer(messageServer)
-messageServer.listen(process.env.CRAYONS_USERS_PORT || 2000);
+messageServer.listen(process.env.CRAYONS_MESSAGES_PORT || 2000);
 
 const db = require('./config/mongoose');
 
