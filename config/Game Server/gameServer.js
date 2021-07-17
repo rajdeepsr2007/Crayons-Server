@@ -12,7 +12,7 @@ let io = null;
 module.exports.createGameServer = (server) => {
 
     io = socketio(server , {
-        cors : 'http://localhost:8000',
+        cors : 'http://localhost:3000',
         credentials : true
     })
 
