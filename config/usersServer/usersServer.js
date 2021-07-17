@@ -32,8 +32,8 @@ module.exports.createUsersServer = (server) => {
             socketToUser[socket.id] = data.userId;
             userToSocket[data.userId] = socket.id;
             socket.join(`user${data.userId}`);
-            this.updateLastSeen( data.userId , 'online' );
             userToRooms[data.userId] = [];
+            this.updateLastSeen( data.userId , 'online' );
         });
 
         
@@ -75,6 +75,7 @@ module.exports.createUsersServer = (server) => {
 
         socket.on('disconnect' , async () => {
             const userId = socketToUser[socket.id];
+            if( userToRooms[userId] )
             for( const room of userToRooms[userId] ){
                 socket.leave(room);
             }
@@ -83,9 +84,11 @@ module.exports.createUsersServer = (server) => {
             delete socketToUser[socket.id];
             delete userToSocket[userId];
             const user = await User.findById(userId);
-            user.lastSeen = Date.now();
-            await user.save();
-            this.updateLastSeen( userId , Date.now() );
+            if( user ){
+                user.lastSeen = Date.now();
+                await user.save();
+                this.updateLastSeen( userId , Date.now() );
+            }
         })
     });
 }
