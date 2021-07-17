@@ -8,7 +8,7 @@ let io = null;
 
 module.exports.createMessageServer = (server) => {
     io = socketIO( server , {
-        cors : 'http://localhost:3000',
+        cors : process.env.REACT_APP || 'http://localhost:3000',
         credentials : true
     });
 
