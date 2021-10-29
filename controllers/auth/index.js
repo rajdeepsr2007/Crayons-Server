@@ -1,51 +1,50 @@
 const User = require('../../models/user/index');
-const {activeUsers} = require('../../config/usersServer/data');
 const { getRandomColor } = require('../../config/Message Server/util/util');
+const jwt = require('jsonwebtoken');
+const { activeUsers } = require('../../config/usersServer/data');
 
-module.exports.authUser = async (req,res) => {
+const getUserToken = async (user) => {
+    const token = jwt.sign(user.toJSON(),'crayons' , {expiresIn : 3600000} );
+    const userObject = {_id : user._id, username : user.username , email : user.email , avatar : user.avatar}
+    return {user : userObject , token};
+}
+
+const getLoginInfo = (token , user) => {
+    return {message : 'You will be redirected to menu...',
+    token : token,
+    userId : user._id ,
+    userObject : user ,
+    success : true}
+}
+
+module.exports.loginSession = async (req,res) => {
     try{
-        const {username , password} = req.body;
-        let user = await User.findOne({ username });
-        if( user ){
-            if( user.password === password ){
-                if( activeUsers[user._id] ){
-                    return res.status(200).json({
-                        message : 'You are already logged in another session',
-                        success : false
-                    })
-                }else{
-                    return res.status(200).json({
-                        message : 'You will be redirected to menu...',
-                        userId : user._id,
-                        success : true
-                    })
-                }
-                
-            }else{
-                return res.status(200).json({
-                    message : 'Username already in use',
-                    success : false
-                })
-            }
-        }else{
-            const avatar = [];
-            avatar[0] = JSON.stringify(Math.ceil(Math.random()*5));
-            avatar[1] = JSON.stringify(Math.ceil(Math.random()*5));
-            avatar[2] = getRandomColor();
-            user = await User.create({ 
-                username ,
-                password ,
-                avatar
-            })
-            return res.status(200).json({
-                message : 'You will be redirected to menu...',
-                userId : user._id ,
-                success : true
-            })
-        }
+        const {user , token} = await getUserToken(req.user); 
+        return res.status(200).json(getLoginInfo(token , user));
     }catch(error){
+        console.log(error);
         return res.status(500).json({
-            message : 'Something went wrong'
+            message : 'Something went wrong!',
+            success : false
         })
     }
 }
+
+module.exports.autoLogin = async (req,res) => {
+    try{
+        if( activeUsers[req.user._id] ){
+            return res.status(401).json({
+                message : 'You are already logged in another session',
+                success : false
+            })
+        }
+        const {user , token} = await getUserToken(req.user);
+        return res.status(200).json(getLoginInfo(token , user));
+    }catch(error){
+        return res.status(500).json({
+            message : 'Something went wrong!',
+            success : false
+        })
+    }
+}
+

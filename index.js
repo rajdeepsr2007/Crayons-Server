@@ -3,6 +3,9 @@ const app = express();
 const port = process.env.CRAYONS_PORT || 8000;
 const cors = require('cors');
 const http=require('http');
+const passport = require('passport');
+const passportJWT = require('./middleware/passport-jwt');
+
 
 const gameServer = http.Server(app);
 const gameServerSocket = require('./config/Game Server/gameServer').createGameServer(gameServer);
@@ -21,6 +24,8 @@ const db = require('./config/mongoose');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended : true }));
+
+app.use(passport.initialize());
 
 app.use('/',require('./routes/'));
 

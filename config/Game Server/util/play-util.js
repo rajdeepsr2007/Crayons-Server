@@ -127,7 +127,7 @@ const getScore = ( roomId ) => {
 module.exports.checkMessage = (data) => {
     let {roomId , text , userId} = data;
     const room = activeRooms[roomId];
-    const isRight =  text.trim() === room.word;
+    const isRight =  text.toLowerCase().trim() === room.word.toLowerCase().trim();
     if( isRight && activeRooms[roomId].scores[userId].question === 0 ){
         const incScore = getScore( roomId );
         room.scores[userId].question += incScore;
