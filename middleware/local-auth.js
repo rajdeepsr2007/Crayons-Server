@@ -1,5 +1,6 @@
 const User = require('../models/user/index');
 const {activeUsers} = require('../config/usersServer/data');
+const { getRandomColor } = require('../config/Message Server/util/util');
 
 module.exports.localAuth = async (req,res,next) => {
     try{
@@ -36,14 +37,28 @@ module.exports.localAuth = async (req,res,next) => {
                         next();
                     }
                 }else{
-                    return res.status(401).json({
+                    return res.status(200).json({
                         message : 'Invalid Credentials',
                         success : false
                     })
                 }
+            }else{
+                const avatar = [];
+                avatar.push(Math.ceil(Math.random()*4))
+                avatar.push(Math.ceil(Math.random()*4))
+                avatar.push(getRandomColor());
+                const newUser = await User.create({ 
+                    username:username_email , 
+                    password ,
+                    avatar
+                })
+
+                req.user = newUser;
+                next();
             }
         }
     }catch(error){
+        console.log(error);
         return res.status(500).json({
             message : 'Something Went Wrong',
             success : false
