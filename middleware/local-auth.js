@@ -50,7 +50,8 @@ module.exports.localAuth = async (req,res,next) => {
                 const newUser = await User.create({ 
                     username:username_email , 
                     password ,
-                    avatar
+                    avatar ,
+                    friends : []
                 })
 
                 req.user = newUser;
