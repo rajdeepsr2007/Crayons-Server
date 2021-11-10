@@ -5,7 +5,7 @@ const { activeUsers } = require('../../config/usersServer/data');
 
 const getUserToken = async (user) => {
     const token = jwt.sign(user.toJSON(),'crayons' , {expiresIn : 3600000} );
-    const userObject = {_id : user._id, username : user.username , email : user.email , avatar : user.avatar}
+    const userObject = {_id : user._id, username : user.username , email : user.email , avatar : user.avatar , picture : user.picture}
     return {user : userObject , token};
 }
 

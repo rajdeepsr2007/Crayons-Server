@@ -5,6 +5,8 @@ const cors = require('cors');
 const http=require('http');
 const passport = require('passport');
 const passportJWT = require('./middleware/passport-jwt');
+const fs = require('fs');
+const path = require('path');
 
 
 const gameServer = http.Server(app);
@@ -27,8 +29,23 @@ app.use(express.urlencoded({ extended : true }));
 
 app.use(passport.initialize());
 
+app.use('/uploads',express.static('./uploads'));
+
 app.use('/',require('./routes/'));
 
+const uploadFolder = path.join(__dirname + '/uploads/avatars') ;
+
+if( !fs.existsSync(uploadFolder) )
+fs.mkdir(path.join(__dirname ,'/uploads') , ( error ) => {
+    if( error )
+        console.log(error)
+    else
+        fs.mkdir(path.join(uploadFolder) , error => {
+            if( error )
+                console.log(error);
+        })
+    }
+)
 
 app.listen( port , ( err ) => {
     if( err ){
@@ -36,4 +53,4 @@ app.listen( port , ( err ) => {
     }else{
         console.log('Server up and running on port',port);
     }
-} )
+})
